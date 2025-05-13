@@ -1,0 +1,47 @@
+name: CI Pipeline with Security Scans
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      # Проверяем код из репозитория
+      - uses: actions/checkout@v3
+
+      # Настраиваем Node.js для Juice Shop
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Устанавливаем зависимости Juice Shop
+      - name: Install Juice Shop dependencies
+        run: |
+          cd juice-shop
+          npm install
+
+      # SAST: Запускаем Semgrep
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/ci
+          publishToken: ${{ secrets.SEMGREP_TOKEN }}
+
+      # Запускаем Juice Shop для DAST
+      - name: Start Juice Shop
+        run: |
+          cd juice-shop
+          npm start &
+          sleep 10
+
+      # DAST: Запускаем OWASP ZAP
+      - name: Run OWASP ZAP
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+          fail_action: true
