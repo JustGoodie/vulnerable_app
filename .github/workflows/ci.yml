@@ -30,7 +30,7 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/ci
-          publishToken: ${{ secrets.SEMGREP_TOKEN }}
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
 
       # Запускаем Juice Shop для DAST
       - name: Start Juice Shop
